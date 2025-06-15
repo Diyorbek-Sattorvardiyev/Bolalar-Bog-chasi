@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Hisobotlar</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Reports Options -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">To‘lovlar bo‘yicha hisobot</h5>
+            <p class="card-text">Oylik yoki yillik to‘lovlar bo‘yicha hisobotlarni ko‘rish.</p>
+            <a href="{{ url_for('admin.payment_reports') }}" class="btn btn-primary">Hisobot yaratish</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

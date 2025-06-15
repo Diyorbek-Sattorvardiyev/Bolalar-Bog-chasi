@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Jadval | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="fas fa-calendar-alt me-2"></i>Jadval
+            </h1>
+            <p class="text-muted">Guruhlar uchun haftalik jadval</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Orqaga
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <form method="GET" action="{{ url_for('teacher.schedule') }}">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-users"></i></span>
+                            <select name="group_id" id="group_select" class="form-select" onchange="this.form.submit()">
+                                {% for group in groups %}
+                                    <option value="{{ group.id }}" {% if selected_group and selected_group.id == group.id %}selected{% endif %}>
+                                        {{ group.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <div class="badge bg-primary p-2">
+                        <i class="fas fa-child me-1"></i>Bolalar soni: {{ selected_group.children|length if selected_group else 0 }}
+                    </div>
+                    {% if selected_group %}
+                        <div class="badge bg-info p-2 ms-2">
+                            <i class="fas fa-users me-1"></i>{{ selected_group.age_group or 'Yosh guruhi ko\'rsatilmagan' }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if selected_group %}
+                <div class="table-responsive">
+                    <table class="table table-bordered schedule-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">Vaqt</th>
+                                {% for day in range(7) %}
+                                    <th style="width: 12%" {% if day == today_day %}class="bg-warning"{% endif %}>
+                                        {{ day_names[day] }}
+                                    </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set start_time = 8 %}
+                            {% set end_time = 18 %}
+                            {% for hour in range(start_time, end_time) %}
+                                <tr>
+                                    <td class="time-slot">{{ "%02d"|format(hour) }}:00</td>
+                                    {% for day in range(7) %}
+                                        <td>
+                                            {% for schedule in schedule_by_day.get(day, []) %}
+                                                {% set schedule_start_hour = schedule.start_time.hour %}
+                                                {% set schedule_end_hour = schedule.end_time.hour %}
+                                                {% if schedule_start_hour <= hour and schedule_end_hour > hour %}
+                                                    <div class="schedule-item">
+                                                        <strong>{{ schedule.activity }}</strong>
+                                                        <div class="small">{{ schedule.start_time.strftime('%H:%M') }} - {{ schedule.end_time.strftime('%H:%M') }}</div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>Iltimos, guruhni tanlang.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Today's Schedule Card -->
+    {% if selected_group and today_day is not none %}
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="fas fa-sun me-2"></i>Bugungi jadval: {{ day_names[today_day] }}</h5>
+            </div>
+            <div class="card-body">
+                {% set today_schedules = schedule_by_day.get(today_day, []) %}
+                {% if today_schedules %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Vaqt</th>
+                                    <th>Faoliyat</th>
+                                    <th>Izoh</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for schedule in today_schedules|sort(attribute='start_time') %}
+                                    <tr>
+                                        <td>{{ schedule.start_time.strftime('%H:%M') }} - {{ schedule.end_time.strftime('%H:%M') }}</td>
+                                        <td>{{ schedule.activity }}</td>
+                                        <td>{{ schedule.description or '-' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Bugun uchun jadval mavjud emas.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .schedule-table th, .schedule-table td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 8px;
+    }
+    
+    .schedule-item {
+        background-color: rgba(13, 110, 253, 0.1);
+        border-radius: 5px;
+        padding: 5px;
+        margin-bottom: 3px;
+        font-size: 0.85rem;
+    }
+    
+    .schedule-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .time-slot {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

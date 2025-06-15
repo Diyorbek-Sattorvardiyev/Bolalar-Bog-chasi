@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirish | {{ app_name }}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo i {
+            font-size: 48px;
+            color: #0d6efd;
+        }
+        .login-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        .btn-login {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-container">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="logo">
+                <i class="fas fa-child"></i>
+            </div>
+            <h2 class="login-title">{{ app_name }}</h2>
+            
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Foydalanuvchi nomi</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="text" class="form-control" id="username" name="username" required autofocus>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Parol</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="role" class="form-label">Rol</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                        <select class="form-select" id="role" name="role" disabled>
+                            <option value="admin">Administrator</option>
+                            <option value="teacher">Tarbiyachi</option>
+                            <option value="parent">Ota-ona</option>
+                        </select>
+                    </div>
+                    <small class="text-muted">Rol avtomatik aniqlanadi</small>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-login">
+                        <i class="fas fa-sign-in-alt me-2"></i>Kirish
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

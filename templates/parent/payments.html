@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}To'lovlar | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="fas fa-money-bill-wave me-2"></i>To'lovlar
+            </h1>
+            <p class="text-muted">To'lovlar tarixi va holati</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('parent.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Orqaga
+            </a>
+        </div>
+    </div>
+
+    <!-- Payment Summary -->
+    <div class="row mb-4">
+        {% for child in children %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100" id="child-{{ child.id }}">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-child me-2"></i>{{ child.first_name }} {{ child.last_name }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="payment-stat text-center p-3 rounded bg-light">
+                                    <div class="payment-value text-success">
+                                        {% set paid_sum = payments_by_child[child.id]|selectattr('status', 'equalto', 'paid')|sum(attribute='amount')|default(0) %}
+                                        {{ paid_sum }} so'm
+                                    </div>
+                                    <div class="payment-label">To'langan</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="payment-stat text-center p-3 rounded bg-light">
+                                    <div class="payment-value text-warning">
+                                        {% set pending_sum = payments_by_child[child.id]|selectattr('status', 'equalto', 'pending')|sum(attribute='amount')|default(0) %}
+                                        {{ pending_sum }} so'm
+                                    </div>
+                                    <div class="payment-label">Kutilmoqda</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-4 mb-3">To'lovlar tarixi</h6>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Sana</th>
+                                        <th>Summa</th>
+                                        <th>Davr</th>
+                                        <th>Holat</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if payments_by_child[child.id] %}
+                                        {% for payment in payments_by_child[child.id]|sort(attribute='payment_date', reverse=true) %}
+                                            <tr>
+                                                <td>{{ payment.payment_date.strftime('%d.%m.%Y') }}</td>
+                                                <td>{{ payment.amount }} so'm</td>
+                                                <td>
+                                                    {% set months = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'] %}
+                                                    {{ months[payment.month - 1] }}, {{ payment.year }}
+                                                </td>
+                                                <td>
+                                                    {% if payment.status == 'paid' %}
+                                                        <span class="badge bg-success">To'langan</span>
+                                                    {% elif payment.status == 'pending' %}
+                                                        <span class="badge bg-warning">Kutilmoqda</span>
+                                                    {% elif payment.status == 'cancelled' %}
+                                                        <span class="badge bg-danger">Bekor qilingan</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center">To'lovlar tarixi mavjud emas</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Payment Instructions -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>To'lov yo'riqnomasi</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-calendar-alt text-primary fa-2x me-3"></i>
+                        </div>
+                        <div>
+                            <h6>To'lov muddati</h6>
+                            <p class="text-muted small">Har oyning 1-5 kunlari oralig'ida to'lov amalga oshirilishi kerak</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-credit-card text-primary fa-2x me-3"></i>
+                        </div>
+                        <div>
+                            <h6>To'lov usullari</h6>
+                            <p class="text-muted small">Naqd pul, bank kartasi yoki bank o'tkazmasi orqali to'lash mumkin</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex mb-3">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-question-circle text-primary fa-2x me-3"></i>
+                        </div>
+                        <div>
+                            <h6>Savollar</h6>
+                            <p class="text-muted small">To'lovlar bo'yicha savollar uchun bog'cha ma'muriyatiga murojaat qiling</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-3 mb-0">
+                <h6 class="alert-heading"><i class="fas fa-lightbulb me-2"></i>Muhim ma'lumot</h6>
+                <p class="small mb-0">Hozirda onlayn to'lov imkoniyati mavjud emas. Yaqin kelajakda bu funksiya qo'shiladi va siz to'g'ridan-to'g'ri tizim orqali to'lovlarni amalga oshira olasiz.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Details -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-university me-2"></i>Bank rekvizitlari</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <th scope="row" style="width: 30%;">Tashkilot nomi:</th>
+                                <td>{{ app_name }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">INN:</th>
+                                <td>123456789</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Bank:</th>
+                                <td>O'zsanoatqurilishbank</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">MFO:</th>
+                                <td>00123</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <th scope="row" style="width: 30%;">Hisob raqami:</th>
+                                <td>12345678901234567890</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">To'lov maqsadi:</th>
+                                <td>Bog'cha to'lovi, [Bola F.I.O], [Oy/Yil]</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Telefon:</th>
+                                <td>+998 71 123-45-67</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Email:</th>
+                                <td>payments@kindergarten.uz</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-stat {
+        border: 1px solid #dee2e6;
+    }
+    .payment-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    .payment-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}

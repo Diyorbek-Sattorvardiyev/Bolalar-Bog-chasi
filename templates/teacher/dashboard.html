@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Tarbiyachi Boshqaruv Paneli | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="fas fa-chalkboard-teacher me-2"></i>Tarbiyachi Boshqaruv Paneli
+            </h1>
+            <p class="text-muted">Xush kelibsiz, {{ teacher.user.first_name }}!</p>
+        </div>
+        <div class="col-auto">
+            <div class="d-flex align-items-center h-100">
+                <div class="current-date-time">
+                    <div class="date">{{ today.strftime('%d.%m.%Y') }}</div>
+                    <div id="current-time" class="time">{{ now.strftime('%H:%M:%S') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert for unread messages -->
+    {% if unread_messages > 0 %}
+    <div class="alert alert-info alert-dismissible fade show">
+        <i class="fas fa-envelope me-2"></i>Sizda {{ unread_messages }} ta o'qilmagan xabar bor!
+        <a href="{{ url_for('teacher.messages') }}" class="alert-link">Xabarlarni ko'rish</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Today's Schedule -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Bugungi jadval</h5>
+                    <a href="{{ url_for('teacher.schedule') }}" class="btn btn-sm btn-primary">To'liq jadval</a>
+                </div>
+                <div class="card-body">
+                    {% if schedules %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Guruh</th>
+                                        <th>Vaqt</th>
+                                        <th>Faoliyat</th>
+                                        <th>Izoh</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for schedule in schedules %}
+                                        <tr>
+                                            <td>{{ schedule.group.name }}</td>
+                                            <td>{{ schedule.start_time.strftime('%H:%M') }} - {{ schedule.end_time.strftime('%H:%M') }}</td>
+                                            <td>{{ schedule.activity }}</td>
+                                            <td>{{ schedule.description or '-' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Bugun uchun jadval mavjud emas.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Tezkor harakatlar</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('teacher.attendance') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-check-circle mb-2 d-block" style="font-size: 24px;"></i>
+                                Davomat
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('teacher.daily_notes') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-clipboard mb-2 d-block" style="font-size: 24px;"></i>
+                                Kunlik yozuvlar
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('teacher.media') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-camera mb-2 d-block" style="font-size: 24px;"></i>
+                                Rasm/Video
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('teacher.messages') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-comments mb-2 d-block" style="font-size: 24px;"></i>
+                                Xabarlar
+                                {% if unread_messages > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ unread_messages }}
+                                </span>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- My Groups -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Mening guruhlarim</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if groups %}
+                        <div class="list-group list-group-flush">
+                            {% for group in groups %}
+                                <a href="{{ url_for('teacher.attendance', group_id=group.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ group.name }}</h6>
+                                        <small class="text-muted">{{ group.age_group or 'Yosh guruhi ko\'rsatilmagan' }}</small>
+                                    </div>
+                                    <span class="badge bg-primary rounded-pill">{{ group.children|length }}</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info m-3">
+                            <i class="fas fa-info-circle me-2"></i>Sizga hali guruhlar tayinlanmagan.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Children List -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-child me-2"></i>Bolalar ro'yxati</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if children %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>F.I.O</th>
+                                        <th>Guruh</th>
+                                        <th>Amallar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for child in children %}
+                                        <tr>
+                                            <td>{{ child.first_name }} {{ child.last_name }}</td>
+                                            <td>{{ child.group.name if child.group else 'Tayinlanmagan' }}</td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="{{ url_for('teacher.daily_notes', child_id=child.id) }}" class="btn btn-outline-primary" data-bs-toggle="tooltip" title="Kunlik yozuv">
+                                                        <i class="fas fa-clipboard"></i>
+                                                    </a>
+                                                    <a href="{{ url_for('teacher.media') }}?child_id={{ child.id }}" class="btn btn-outline-info" data-bs-toggle="tooltip" title="Media yuklash">
+                                                        <i class="fas fa-camera"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info m-3">
+                            <i class="fas fa-info-circle me-2"></i>Guruhlaringizda bolalar yo'q.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Davomat | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="fas fa-check-circle me-2"></i>Davomat
+            </h1>
+            <p class="text-muted">Bolalarning kunlik davomatini belgilash</p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <form method="GET" action="{{ url_for('teacher.attendance') }}">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-users"></i></span>
+                            <select name="group_id" id="group_select" class="form-select" onchange="this.form.submit()">
+                                {% for group in groups %}
+                                    <option value="{{ group.id }}" {% if selected_group and selected_group.id == group.id %}selected{% endif %}>
+                                        {{ group.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-center">
+                    <form method="GET" action="{{ url_for('teacher.attendance') }}">
+                        {% if selected_group %}
+                            <input type="hidden" name="group_id" value="{{ selected_group.id }}">
+                        {% endif %}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                            <input type="date" name="date" class="form-control" value="{{ selected_date.strftime('%Y-%m-%d') }}" onchange="this.form.submit()">
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Orqaga
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if selected_group and children %}
+                <form method="POST" id="attendance-form" action="{{ url_for('teacher.attendance', date=selected_date, group_id=selected_group.id) }}">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 25%;">F.I.O</th>
+                                    <th style="width: 20%;">Davomat</th>
+                                    <th style="width: 50%;">Izoh</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for child in children %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ child.first_name }} {{ child.last_name }}</td>
+                                        <td>
+                                            <select name="status_{{ child.id }}" class="form-select status-select" aria-label="Davomat holati">
+                                                <option value="" {% if not attendance_records.get(child.id) %}selected{% endif %}>Tanlang...</option>
+                                                <option value="present" {% if attendance_records.get(child.id) and attendance_records[child.id].status == 'present' %}selected{% endif %}>Keldi</option>
+                                                <option value="absent" {% if attendance_records.get(child.id) and attendance_records[child.id].status == 'absent' %}selected{% endif %}>Kelmadi</option>
+                                                <option value="late" {% if attendance_records.get(child.id) and attendance_records[child.id].status == 'late' %}selected{% endif %}>Kech keldi</option>
+                                                <option value="excused" {% if attendance_records.get(child.id) and attendance_records[child.id].status == 'excused' %}selected{% endif %}>Sababli</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="note_{{ child.id }}" class="form-control" placeholder="Izoh..." value="{{ attendance_records.get(child.id, {}).note or '' }}">
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Saqlash
+                        </button>
+                    </div>
+                </form>
+            {% elif not selected_group %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>Iltimos, guruhni tanlang.
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>Bu guruhda bolalar yo'q.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Tezkor harakatlar</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-success w-100" id="markAllPresent">
+                                <i class="fas fa-check-circle me-2"></i>Barchasini 'Keldi' deb belgilash
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-danger w-100" id="markAllAbsent">
+                                <i class="fas fa-times-circle me-2"></i>Barchasini 'Kelmadi' deb belgilash
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-outline-secondary w-100" id="resetAll">
+                                <i class="fas fa-undo me-2"></i>Davomatni tiklash
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mark all as present
+        document.getElementById('markAllPresent').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('.status-select').forEach(function(select) {
+                select.value = 'present';
+            });
+        });
+
+        // Mark all as absent
+        document.getElementById('markAllAbsent').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('.status-select').forEach(function(select) {
+                select.value = 'absent';
+            });
+        });
+
+        // Reset all
+        document.getElementById('resetAll').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('.status-select').forEach(function(select) {
+                select.value = '';
+            });
+            document.querySelectorAll('input[name^="note_"]').forEach(function(input) {
+                input.value = '';
+            });
+        });
+    });
+</script>
+{% endblock %}

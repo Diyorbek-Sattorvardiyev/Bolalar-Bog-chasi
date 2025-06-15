@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">To‘lov ma'lumotlarini tahrirlash</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Edit Payment Form -->
+    <form method="POST" action="{{ url_for('admin.edit_payment', payment_id=payment.id) }}" class="needs-validation" novalidate>
+        <div class="row">
+            <!-- Child -->
+            <div class="col-md-6 mb-3">
+                <label for="child_id" class="form-label">Bola</label>
+                <select class="form-select" id="child_id" name="child_id" required>
+                    <option value="" disabled>Bolani tanlang</option>
+                    {% for child in children %}
+                        <option value="{{ child.id }}" {% if child.id == payment.child_id %}selected{% endif %}>
+                            {{ child.first_name }} {{ child.last_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, bolani tanlang.
+                </div>
+            </div>
+            
+            <!-- Amount -->
+            <div class="col-md-6 mb-3">
+                <label for="amount" class="form-label">Miqdor</label>
+                <input type="number" step="0.01" class="form-control" id="amount" name="amount" value="{{ payment.amount }}" required>
+                <div class="invalid-feedback">
+                    Iltimos, to‘lov miqdorini kiriting.
+                </div>
+            </div>
+            
+            <!-- Payment Date -->
+            <div class="col-md-6 mb-3">
+                <label for="payment_date" class="form-label">To‘lov sanasi</label>
+                <input type="date" class="form-control" id="payment_date" name="payment_date" value="{{ payment.payment_date.strftime('%Y-%m-%d') }}" required>
+                <div class="invalid-feedback">
+                    Iltimos, to‘lov sanasini kiriting.
+                </div>
+            </div>
+            
+            <!-- Payment Type -->
+            <div class="col-md-6 mb-3">
+                <label for="payment_type" class="form-label">To‘lov turi</label>
+                <select class="form-select" id="payment_type" name="payment_type" required>
+                    <option value="" disabled>To‘lov turini tanlang</option>
+                    <option value="cash" {% if payment.payment_type == 'cash' %}selected{% endif %}>Naqd</option>
+                    <option value="card" {% if payment.payment_type == 'card' %}selected{% endif %}>Karta</option>
+                    <option value="bank_transfer" {% if payment.payment_type == 'bank_transfer' %}selected{% endif %}>Bank o‘tkazmasi</option>
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, to‘lov turini tanlang.
+                </div>
+            </div>
+            
+            <!-- Status -->
+            <div class="col-md-6 mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status" required>
+                    <option value="" disabled>Statusni tanlang</option>
+                    <option value="paid" {% if payment.status == 'paid' %}selected{% endif %}>To‘langan</option>
+                    <option value="pending" {% if payment.status == 'pending' %}selected{% endif %}>Kutilmoqda</option>
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, statusni tanlang.
+                </div>
+            </div>
+            
+            <!-- Month -->
+            <div class="col-md-6 mb-3">
+                <label for="month" class="form-label">Oy</label>
+                <select class="form-select" id="month" name="month" required>
+                    <option value="" disabled>Oyni tanlang</option>
+                    {% for i in range(1, 13) %}
+                        <option value="{{ i }}" {% if i == payment.month %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, oyni tanlang.
+                </div>
+            </div>
+            
+            <!-- Year -->
+            <div class="col-md-6 mb-3">
+                <label for="year" class="form-label">Yil</label>
+                <select class="form-select" id="year" name="year" required>
+                    <option value="" disabled>Yilni tanlang</option>
+                    {% for year in years %}
+                        <option value="{{ year }}" {% if year == payment.year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, yilni tanlang.
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <div class="col-md-12 mb-3">
+                <label for="description" class="form-label">Tavsif</label>
+                <textarea class="form-control" id="description" name="description" rows="4">{{ payment.description or '' }}</textarea>
+            </div>
+        </div>
+        
+        <!-- Submit and Back Buttons -->
+        <button type="submit" class="btn btn-primary">Saqlash</button>
+        <a href="{{ url_for('admin.payments') }}" class="btn btn-secondary">Orqaga qaytish</a>
+    </form>
+</div>
+
+<!-- Bootstrap form validation script -->
+<script>
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})();
+</script>
+{% endblock %}

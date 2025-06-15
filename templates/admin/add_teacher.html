@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">O‘qituvchi qo‘shish</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Add Teacher Form -->
+    <form method="POST" action="{{ url_for('admin.add_teacher') }}" class="needs-validation" novalidate>
+        <div class="row">
+            <!-- Username -->
+            <div class="col-md-6 mb-3">
+                <label for="username" class="form-label">Foydalanuvchi nomi</label>
+                <input type="text" class="form-control" id="username" name="username" required>
+                <div class="invalid-feedback">
+                    Iltimos, foydalanuvchi nomini kiriting.
+                </div>
+            </div>
+            
+            <!-- Password -->
+            <div class="col-md-6 mb-3">
+                <label for="password" class="form-label">Parol</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+                <div class="invalid-feedback">
+                    Iltimos, parolni kiriting.
+                </div>
+            </div>
+            
+            <!-- First Name -->
+            <div class="col-md-6 mb-3">
+                <label for="first_name" class="form-label">Ism</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                <div class="invalid-feedback">
+                    Iltimos, ismingizni kiriting.
+                </div>
+            </div>
+            
+            <!-- Last Name -->
+            <div class="col-md-6 mb-3">
+                <label for="last_name" class="form-label">Familiya</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                <div class="invalid-feedback">
+                    Iltimos, familiyangizni kiriting.
+                </div>
+            </div>
+            
+            <!-- Email -->
+            <div class="col-md-6 mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+                <div class="invalid-feedback">
+                    Iltimos, to‘g‘ri email manzilini kiriting.
+                </div>
+            </div>
+            
+            <!-- Phone -->
+            <div class="col-md-6 mb-3">
+                <label for="phone" class="form-label">Telefon raqami</label>
+                <input type="text" class="form-control" id="phone" name="phone">
+            </div>
+            
+            <!-- Qualification -->
+            <div class="col-md-6 mb-3">
+                <label for="qualification" class="form-label">Malaka</label>
+                <input type="text" class="form-control" id="qualification" name="qualification">
+            </div>
+            
+            <!-- Bio -->
+            <div class="col-md-12 mb-3">
+                <label for="bio" class="form-label">Biografiya</label>
+                <textarea class="form-control" id="bio" name="bio" rows="4"></textarea>
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">O‘qituvchi qo‘shish</button>
+        <a href="{{ url_for('admin.teachers') }}" class="btn btn-secondary">Bekor qilish</a>
+    </form>
+</div>
+
+<!-- Bootstrap form validation script -->
+<script>
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})();
+</script>
+{% endblock %}

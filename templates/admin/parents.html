@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Ota-onalar ro‘yxati</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Add Parent Button -->
+    <div class="mb-3">
+        <a href="{{ url_for('admin.add_parent') }}" class="btn btn-primary">Yangi ota-ona qo‘shish</a>
+    </div>
+    
+    <!-- Parents Table -->
+    {% if parents %}
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Ism</th>
+                    <th>Familiya</th>
+                    <th>Foydalanuvchi nomi</th>
+                    <th>Email</th>
+                    <th>Telefon</th>
+                    <th>Manzil</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for parent in parents %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ parent.user.first_name }}</td>
+                        <td>{{ parent.user.last_name }}</td>
+                        <td>{{ parent.user.username }}</td>
+                        <td>{{ parent.user.email }}</td>
+                        <td>{{ parent.user.phone or '-' }}</td>
+                        <td>{{ parent.address or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.edit_parent', parent_id=parent.id) }}" class="btn btn-sm btn-warning">Tahrirlash</a>
+                            <form action="{{ url_for('admin.delete_parent', parent_id=parent.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Bu ota-onani o‘chirishni xohlaysizmi?');">
+                                <button type="submit" class="btn btn-sm btn-danger">O‘chirish</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">
+            Hozirda ota-onalar ro‘yxati bo‘sh.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

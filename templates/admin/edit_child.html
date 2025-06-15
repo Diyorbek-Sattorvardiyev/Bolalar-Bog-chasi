@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Bola ma'lumotlarini tahrirlash</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Edit Child Form -->
+    <form method="POST" action="{{ url_for('admin.edit_child', child_id=child.id) }}" class="needs-validation" novalidate>
+        <div class="row">
+            <!-- First Name -->
+            <div class="col-md-6 mb-3">
+                <label for="first_name" class="form-label">Ism</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ child.first_name }}" required>
+                <div class="invalid-feedback">
+                    Iltimos, bolaning ismini kiriting.
+                </div>
+            </div>
+            
+            <!-- Last Name -->
+            <div class="col-md-6 mb-3">
+                <label for="last_name" class="form-label">Familiya</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ child.last_name }}" required>
+                <div class="invalid-feedback">
+                    Iltimos, bolaning familiyasini kiriting.
+                </div>
+            </div>
+            
+            <!-- Date of Birth -->
+            <div class="col-md-6 mb-3">
+                <label for="date_of_birth" class="form-label">Tug‘ilgan sana</label>
+                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" value="{{ child.date_of_birth.strftime('%Y-%m-%d') }}" required>
+                <div class="invalid-feedback">
+                    Iltimos, tug‘ilgan sanani kiriting.
+                </div>
+            </div>
+            
+            <!-- Gender -->
+            <div class="col-md-6 mb-3">
+                <label for="gender" class="form-label">Jinsi</label>
+                <select class="form-select" id="gender" name="gender" required>
+                    <option value="" disabled>Jinsni tanlang</option>
+                    <option value="male" {% if child.gender == 'male' %}selected{% endif %}>Erkak</option>
+                    <option value="female" {% if child.gender == 'female' %}selected{% endif %}>Ayol</option>
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, jinsni tanlang.
+                </div>
+            </div>
+            
+            <!-- Parent -->
+            <div class="col-md-6 mb-3">
+                <label for="parent_id" class="form-label">Ota-ona</label>
+                <select class="form-select" id="parent_id" name="parent_id" required>
+                    <option value="" disabled>Ota-onani tanlang</option>
+                    {% for parent in parents %}
+                        <option value="{{ parent.id }}" {% if parent.id == child.parent_id %}selected{% endif %}>
+                            {{ parent.user.first_name }} {{ parent.user.last_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, ota-onani tanlang.
+                </div>
+            </div>
+            
+            <!-- Group -->
+            <div class="col-md-6 mb-3">
+                <label for="group_id" class="form-label">Guruh</label>
+                <select class="form-select" id="group_id" name="group_id">
+                    <option value="">Guruh tanlanmagan</option>
+                    {% for group in groups %}
+                        <option value="{{ group.id }}" {% if group.id == child.group_id %}selected{% endif %}>
+                            {{ group.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Allergies -->
+            <div class="col-md-12 mb-3">
+                <label for="allergies" class="form-label">Allergiyalar</label>
+                <textarea class="form-control" id="allergies" name="allergies" rows="3">{{ child.allergies or '' }}</textarea>
+            </div>
+            
+            <!-- Medical Notes -->
+            <div class="col-md-12 mb-3">
+                <label for="medical_notes" class="form-label">Tibbiy eslatmalar</label>
+                <textarea class="form-control" id="medical_notes" name="medical_notes" rows="3">{{ child.medical_notes or '' }}</textarea>
+            </div>
+            
+            <!-- Enrollment Date -->
+            <div class="col-md-6 mb-3">
+                <label for="enrollment_date" class="form-label">Ro‘yxatdan o‘tgan sana</label>
+                <input type="date" class="form-control" id="enrollment_date" name="enrollment_date" value="{{ child.enrollment_date.strftime('%Y-%m-%d') }}" required>
+                <div class="invalid-feedback">
+                    Iltimos, ro‘yxatdan o‘tgan sanani kiriting.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Saqlash</button>
+        <a href="{{ url_for('admin.children') }}" class="btn btn-secondary">Bekor qilish</a>
+    </form>
+</div>
+
+<!-- Bootstrap form validation script -->
+<script>
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})();
+</script>
+{% endblock %}

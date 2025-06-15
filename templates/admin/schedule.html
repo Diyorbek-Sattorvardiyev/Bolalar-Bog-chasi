@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jadval - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Jadval</h1>
+    <a href="{{ url_for('admin.add_schedule') }}" class="btn btn-primary mb-3">Yangi jadval qo‘shish</a>
+    
+    {% if groups %}
+        {% for group in groups %}
+            <h3 class="mt-4">{{ group.name }}</h3>
+            <div class="accordion" id="accordionGroup{{ group.id }}">
+                {% for day in range(7) %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ group.id }}_{{ day }}">
+                            <button class="accordion-button {% if loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ group.id }}_{{ day }}" aria-expanded="{% if loop.first %}true{% else %}false{% endif %}" aria-controls="collapse{{ group.id }}_{{ day }}">
+                                {{ day_names[day] }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ group.id }}_{{ day }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" aria-labelledby="heading{{ group.id }}_{{ day }}" data-bs-parent="#accordionGroup{{ group.id }}">
+                            <div class="accordion-body">
+                                {% if schedule_by_group[group.id][day] %}
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Boshlanish vaqti</th>
+                                                <th>Tugash vaqti</th>
+                                                <th>Mashg‘ulot</th>
+                                                <th>Tavsif</th>
+                                                <th>Amallar</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for schedule in schedule_by_group[group.id][day] %}
+                                                <tr>
+                                                    <td>{{ schedule.start_time.strftime('%H:%M') }}</td>
+                                                    <td>{{ schedule.end_time.strftime('%H:%M') }}</td>
+                                                    <td>{{ schedule.activity }}</td>
+                                                    <td>{{ schedule.description or '-' }}</td>
+                                                    <td>
+                                                        <a href="{{ url_for('admin.edit_schedule', schedule_id=schedule.id) }}" class="btn btn-sm btn-warning">Tahrirlash</a>
+                                                        <form action="{{ url_for('admin.delete_schedule', schedule_id=schedule.id) }}" method="POST" style="display:inline;">
+                                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Haqiqatan ham o‘chirishni xohlaysizmi?');">O‘chirish</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% else %}
+                                    <p>Bu kunda mashg‘ulotlar yo‘q</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>Hozirda guruhlar mavjud emas.</p>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+</body>
+</html>

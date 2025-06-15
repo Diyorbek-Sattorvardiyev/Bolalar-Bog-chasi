@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Jadval | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="fas fa-calendar-alt me-2"></i>Jadval
+            </h1>
+            <p class="text-muted">Farzandingizning haftalik jadvali</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('parent.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Orqaga
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <form method="GET" action="{{ url_for('parent.schedule') }}">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-child"></i></span>
+                            <select name="child_id" id="child_select" class="form-select" onchange="this.form.submit()">
+                                {% for child in children %}
+                                    <option value="{{ child.id }}" {% if selected_child and selected_child.id == child.id %}selected{% endif %}>
+                                        {{ child.first_name }} {{ child.last_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    {% if selected_child and selected_child.group %}
+                        <div class="badge bg-primary p-2">
+                            <i class="fas fa-users me-1"></i>{{ selected_child.group.name }}
+                        </div>
+                        <div class="badge bg-info p-2 ms-2">
+                            <i class="fas fa-child me-1"></i>{{ selected_child.group.age_group or 'Yosh guruhi ko\'rsatilmagan' }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if selected_child and selected_child.group_id %}
+                <div class="table-responsive">
+                    <table class="table table-bordered schedule-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">Vaqt</th>
+                                {% for day in range(7) %}
+                                    <th style="width: 12%" {% if day == today_day %}class="bg-warning"{% endif %}>
+                                        {{ day_names[day] }}
+                                    </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set start_time = 8 %}
+                            {% set end_time = 18 %}
+                            {% for hour in range(start_time, end_time) %}
+                                <tr>
+                                    <td class="time-slot">{{ "%02d"|format(hour) }}:00</td>
+                                    {% for day in range(7) %}
+                                        <td>
+                                            {% for schedule in schedule_by_day.get(day, []) %}
+                                                {% set schedule_start_hour = schedule.start_time.hour %}
+                                                {% set schedule_end_hour = schedule.end_time.hour %}
+                                                {% if schedule_start_hour <= hour and schedule_end_hour > hour %}
+                                                    <div class="schedule-item">
+                                                        <strong>{{ schedule.activity }}</strong>
+                                                        <div class="small">{{ schedule.start_time.strftime('%H:%M') }} - {{ schedule.end_time.strftime('%H:%M') }}</div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% elif selected_child and not selected_child.group_id %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>Farzandingiz hali guruhga tayinlanmagan.
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>Iltimos, farzandingizni tanlang.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Today's Schedule Card -->
+    {% if selected_child and selected_child.group_id and today_day is not none %}
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="fas fa-sun me-2"></i>Bugungi jadval: {{ day_names[today_day] }}</h5>
+            </div>
+            <div class="card-body">
+                {% set today_schedules = schedule_by_day.get(today_day, []) %}
+                {% if today_schedules %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Vaqt</th>
+                                    <th>Faoliyat</th>
+                                    <th>Izoh</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for schedule in today_schedules|sort(attribute='start_time') %}
+                                    <tr>
+                                        <td>{{ schedule.start_time.strftime('%H:%M') }} - {{ schedule.end_time.strftime('%H:%M') }}</td>
+                                        <td>{{ schedule.activity }}</td>
+                                        <td>{{ schedule.description or '-' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Bugun uchun jadval mavjud emas.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Important Notes -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-sticky-note me-2"></i>Muhim eslatmalar</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-info mb-md-0">
+                        <h6><i class="fas fa-clock me-2"></i>Kelish va ketish vaqti</h6>
+                        <p class="small mb-0">Bolalar bog'chaga ertalab soat 07:30 dan 08:30 gacha kelishlari va kechqurun 17:00 dan 18:00 gacha ketishlari kerak. Kechikmasdan o'z vaqtida olib kelish va olib ketishni unutmang.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-warning mb-0">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>O'zgarishlar haqida</h6>
+                        <p class="small mb-0">Jadvalda o'zgarishlar bo'lishi mumkin. Barcha o'zgarishlar haqida tarbiyachilar orqali xabar beriladi. Iltimos, xabarlarni muntazam tekshirib turing.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .schedule-table th, .schedule-table td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 8px;
+    }
+    
+    .schedule-item {
+        background-color: rgba(13, 110, 253, 0.1);
+        border-radius: 5px;
+        padding: 5px;
+        margin-bottom: 3px;
+        font-size: 0.85rem;
+    }
+    
+    .schedule-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .time-slot {
+        background-color: #f8f9fa;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

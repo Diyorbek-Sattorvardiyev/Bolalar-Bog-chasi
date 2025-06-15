@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Kunlik Yozuvlar | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="fas fa-clipboard me-2"></i>Kunlik Yozuvlar
+            </h1>
+            <p class="text-muted">Bolalar uchun kunlik yozuvlarni kiritish</p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <form method="GET" action="{{ url_for('teacher.daily_notes') }}">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-child"></i></span>
+                            <select name="child_id" id="child_select" class="form-select" onchange="this.form.submit()">
+                                {% for child in all_children %}
+                                    <option value="{{ child.id }}" {% if selected_child and selected_child.id == child.id %}selected{% endif %}>
+                                        {{ child.first_name }} {{ child.last_name }} ({{ child.group.name if child.group else 'Guruhi yo\'q' }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-center">
+                    <form method="GET" action="{{ url_for('teacher.daily_notes') }}">
+                        {% if selected_child %}
+                            <input type="hidden" name="child_id" value="{{ selected_child.id }}">
+                        {% endif %}
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                            <input type="date" name="date" class="form-control" value="{{ selected_date.strftime('%Y-%m-%d') }}" onchange="this.form.submit()">
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Orqaga
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            {% if selected_child %}
+                <form method="POST" action="{{ url_for('teacher.daily_notes', date=selected_date, child_id=selected_child.id) }}">
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="child-info bg-light p-3 rounded mb-4">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <p><strong>Bola:</strong> {{ selected_child.first_name }} {{ selected_child.last_name }}</p>
+                                        <p><strong>Tug'ilgan sana:</strong> {{ selected_child.date_of_birth.strftime('%d.%m.%Y') }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p><strong>Guruh:</strong> {{ selected_child.group.name if selected_child.group else 'Tayinlanmagan' }}</p>
+                                        <p><strong>Allergiyalar:</strong> {{ selected_child.allergies or 'Yo\'q' }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <p><strong>Tibbiy eslatmalar:</strong> {{ selected_child.medical_notes or 'Yo\'q' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="meal_notes" class="form-label">Ovqatlanish</label>
+                        <textarea name="meal_notes" id="meal_notes" rows="3" class="form-control" placeholder="Bugungi ovqatlanish haqida ma'lumot kiriting...">{{ daily_note.meal_notes if daily_note else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nap_notes" class="form-label">Uyqu</label>
+                        <textarea name="nap_notes" id="nap_notes" rows="3" class="form-control" placeholder="Bugungi uyqu haqida ma'lumot kiriting...">{{ daily_note.nap_notes if daily_note else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="activity_notes" class="form-label">Faoliyat</label>
+                        <textarea name="activity_notes" id="activity_notes" rows="3" class="form-control" placeholder="Bugungi faoliyat haqida ma'lumot kiriting...">{{ daily_note.activity_notes if daily_note else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="behavior_notes" class="form-label">Xulq-atvor</label>
+                        <textarea name="behavior_notes" id="behavior_notes" rows="3" class="form-control" placeholder="Bugungi xulq-atvor haqida ma'lumot kiriting...">{{ daily_note.behavior_notes if daily_note else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="general_notes" class="form-label">Umumiy eslatmalar</label>
+                        <textarea name="general_notes" id="general_notes" rows="3" class="form-control" placeholder="Qo'shimcha ma'lumotlar...">{{ daily_note.general_notes if daily_note else '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Saqlash
+                        </button>
+                    </div>
+                </form>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>Iltimos, bolani tanlang.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Oldingi yozuvlar</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if selected_child %}
+                <div class="list-group list-group-flush">
+                    {% set notes = selected_child.daily_notes|sort(attribute='date', reverse=True) %}
+                    {% if notes %}
+                        {% for note in notes[:5] %}
+                            <a href="{{ url_for('teacher.daily_notes', child_id=selected_child.id, date=note.date) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ note.date.strftime('%d.%m.%Y') }}</h6>
+                                    <small>{{ note.created_at.strftime('%H:%M') }}</small>
+                                </div>
+                                <p class="mb-1 text-truncate">{{ note.general_notes or note.activity_notes or "Ma'lumot mavjud emas" }}</p>
+                            </a>
+                        {% endfor %}
+                        {% if notes|length > 5 %}
+                            <div class="list-group-item text-center">
+                                <a href="#" class="text-primary">Barchasini ko'rish</a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="list-group-item">Oldingi yozuvlar mavjud emas</div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="list-group-item">Avval bolani tanlang</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

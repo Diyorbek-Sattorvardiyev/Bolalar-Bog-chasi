@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Bollar ro‘yxati</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Add Child Button -->
+    <div class="mb-3">
+        <a href="{{ url_for('admin.add_child') }}" class="btn btn-primary">Yangi bola qo‘shish</a>
+    </div>
+    
+    <!-- Children Table -->
+    {% if children %}
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Ism</th>
+                    <th>Familiya</th>
+                    <th>Tug‘ilgan sana</th>
+                    <th>Jinsi</th>
+                    <th>Ota-ona</th>
+                    <th>Guruh</th>
+                    <th>Ro‘yxatdan o‘tgan sana</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for child in children %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ child.first_name }}</td>
+                        <td>{{ child.last_name }}</td>
+                        <td>{{ child.date_of_birth.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ 'Erkak' if child.gender == 'male' else 'Ayol' }}</td>
+                        <td>
+                            {% if child.parent %}
+                                {{ child.parent.user.first_name }} {{ child.parent.user.last_name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if child.group %}
+                                {{ child.group.name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ child.enrollment_date.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.edit_child', child_id=child.id) }}" class="btn btn-sm btn-warning">Tahrirlash</a>
+                            <form action="{{ url_for('admin.delete_child', child_id=child.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Bu bolani o‘chirishni xohlaysizmi?');">
+                                <button type="submit" class="btn btn-sm btn-danger">O‘chirish</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-info">
+            Hozirda bolalar ro‘yxati bo‘sh.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Bola qo‘shish</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Add Child Form -->
+    <form method="POST" action="{{ url_for('admin.add_child') }}" class="needs-validation" novalidate>
+        <div class="row">
+            <!-- First Name -->
+            <div class="col-md-6 mb-3">
+                <label for="first_name" class="form-label">Ism</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                <div class="invalid-feedback">
+                    Iltimos, bolaning ismini kiriting.
+                </div>
+            </div>
+            
+            <!-- Last Name -->
+            <div class="col-md-6 mb-3">
+                <label for="last_name" class="form-label">Familiya</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                <div class="invalid-feedback">
+                    Iltimos, bolaning familiyasini kiriting.
+                </div>
+            </div>
+            
+            <!-- Date of Birth -->
+            <div class="col-md-6 mb-3">
+                <label for="date_of_birth" class="form-label">Tug‘ilgan sana</label>
+                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+                <div class="invalid-feedback">
+                    Iltimos, tug‘ilgan sanani kiriting.
+                </div>
+            </div>
+            
+            <!-- Gender -->
+            <div class="col-md-6 mb-3">
+                <label for="gender" class="form-label">Jinsi</label>
+                <select class="form-select" id="gender" name="gender" required>
+                    <option value="" disabled selected>Jinsni tanlang</option>
+                    <option value="male">Erkak</option>
+                    <option value="female">Ayol</option>
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, jinsni tanlang.
+                </div>
+            </div>
+            
+            <!-- Parent -->
+            <div class="col-md-6 mb-3">
+                <label for="parent_id" class="form-label">Ota-ona</label>
+                <select class="form-select" id="parent_id" name="parent_id" required>
+                    <option value="" disabled selected>Ota-onani tanlang</option>
+                    {% for parent in parents %}
+                        <option value="{{ parent.id }}">{{ parent.user.first_name }} {{ parent.user.last_name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, ota-onani tanlang.
+                </div>
+            </div>
+            
+            <!-- Group -->
+            <div class="col-md-6 mb-3">
+                <label for="group_id" class="form-label">Guruh</label>
+                <select class="form-select" id="group_id" name="group_id">
+                    <option value="">Guruh tanlanmagan</option>
+                    {% for group in groups %}
+                        <option value="{{ group.id }}">{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Allergies -->
+            <div class="col-md-12 mb-3">
+                <label for="allergies" class="form-label">Allergiyalar</label>
+                <textarea class="form-control" id="allergies" name="allergies" rows="3"></textarea>
+            </div>
+            
+            <!-- Medical Notes -->
+            <div class="col-md-12 mb-3">
+                <label for="medical_notes" class="form-label">Tibbiy eslatmalar</label>
+                <textarea class="form-control" id="medical_notes" name="medical_notes" rows="3"></textarea>
+            </div>
+            
+            <!-- Enrollment Date -->
+            <div class="col-md-6 mb-3">
+                <label for="enrollment_date" class="form-label">Ro‘yxatdan o‘tgan sana</label>
+                <input type="date" class="form-control" id="enrollment_date" name="enrollment_date" required>
+                <div class="invalid-feedback">
+                    Iltimos, ro‘yxatdan o‘tgan sanani kiriting.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Bola qo‘shish</button>
+        <a href="{{ url_for('admin.children') }}" class="btn btn-secondary">Bekor qilish</a>
+    </form>
+</div>
+
+<!-- Bootstrap form validation script -->
+<script>
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})();
+</script>
+{% endblock %}

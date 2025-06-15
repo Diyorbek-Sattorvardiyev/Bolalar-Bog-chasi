@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+
+{% block title %}Farzand ma'lumotlari | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="fas fa-child me-2"></i>{{ child.first_name }} {{ child.last_name }}
+            </h1>
+            <p class="text-muted">Farzandingiz haqida batafsil ma'lumot</p>
+        </div>
+        <div class="col-auto">
+            <a href="{{ url_for('parent.dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Orqaga
+            </a>
+        </div>
+    </div>
+
+    <!-- Child Information Card -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Asosiy ma'lumotlar</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <th scope="row" style="width: 40%;">F.I.O:</th>
+                                <td>{{ child.first_name }} {{ child.last_name }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Tug'ilgan sana:</th>
+                                <td>{{ child.date_of_birth.strftime('%d.%m.%Y') }} ({{ ((now.date() - child.date_of_birth).days // 365) }} yosh)</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Jinsi:</th>
+                                <td>{{ 'O\'g\'il bola' if child.gender == 'male' else 'Qiz bola' }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Qo'shilgan sana:</th>
+                                <td>{{ child.enrollment_date.strftime('%d.%m.%Y') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tbody>
+                            <tr>
+                                <th scope="row" style="width: 40%;">Guruh:</th>
+                                <td>{{ group.name if group else 'Tayinlanmagan' }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Tarbiyachi:</th>
+                                <td>{{ group.teacher.user.first_name + ' ' + group.teacher.user.last_name if group and group.teacher else 'Tayinlanmagan' }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Allergiyalar:</th>
+                                <td>{{ child.allergies or 'Yo\'q' }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Tibbiy eslatmalar:</th>
+                                <td>{{ child.medical_notes or 'Yo\'q' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs mb-4" id="childInfoTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab" aria-controls="attendance" aria-selected="true">
+                <i class="fas fa-calendar-check me-2"></i>Davomat
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="notes-tab" data-bs-toggle="tab" data-bs-target="#notes" type="button" role="tab" aria-controls="notes" aria-selected="false">
+                <i class="fas fa-clipboard me-2"></i>Kunlik yozuvlar
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="childInfoTabsContent">
+        <!-- Attendance Tab -->
+        <div class="tab-pane fade show active" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Davomat tarixi</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">Barchasi</button>
+                        <button type="button" class="btn btn-sm btn-outline-success" data-filter="present">Kelgan</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-filter="absent">Kelmagan</button>
+                        <button type="button" class="btn btn-sm btn-outline-warning" data-filter="late">Kech kelgan</button>
+                        <button type="button" class="btn btn-sm btn-outline-info" data-filter="excused">Sababli</button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Sana</th>
+                                    <th>Holat</th>
+                                    <th>Izoh</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if attendance_history %}
+                                    {% for attendance in attendance_history %}
+                                        <tr class="attendance-row" data-status="{{ attendance.status }}">
+                                            <td>{{ attendance.date.strftime('%d.%m.%Y') }}</td>
+                                            <td>
+                                                {% if attendance.status == 'present' %}
+                                                    <span class="badge bg-success">Keldi</span>
+                                                {% elif attendance.status == 'absent' %}
+                                                    <span class="badge bg-danger">Kelmadi</span>
+                                                {% elif attendance.status == 'late' %}
+                                                    <span class="badge bg-warning">Kech keldi</span>
+                                                {% elif attendance.status == 'excused' %}
+                                                    <span class="badge bg-info">Sababli</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ attendance.note or '-' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center">Davomat tarixi mavjud emas</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Notes Tab -->
+        <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clipboard me-2"></i>Kunlik yozuvlar</h5>
+                </div>
+                <div class="card-body">
+                    {% if daily_notes %}
+                        <div class="accordion" id="daily-notes-accordion">
+                            {% for note in daily_notes %}
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="heading{{ loop.index }}">
+                                        <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="collapse{{ loop.index }}">
+                                            {{ note.date.strftime('%d.%m.%Y') }} - {{ note.teacher.user.first_name }} {{ note.teacher.user.last_name }}
+                                        </button>
+                                    </h2>
+                                    <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" aria-labelledby="heading{{ loop.index }}" data-bs-parent="#daily-notes-accordion">
+                                        <div class="accordion-body">
+                                            {% if note.meal_notes %}
+                                                <div class="mb-3">
+                                                    <h6><i class="fas fa-utensils me-2"></i>Ovqatlanish</h6>
+                                                    <p>{{ note.meal_notes }}</p>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if note.nap_notes %}
+                                                <div class="mb-3">
+                                                    <h6><i class="fas fa-bed me-2"></i>Uyqu</h6>
+                                                    <p>{{ note.nap_notes }}</p>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if note.activity_notes %}
+                                                <div class="mb-3">
+                                                    <h6><i class="fas fa-running me-2"></i>Faoliyat</h6>
+                                                    <p>{{ note.activity_notes }}</p>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if note.behavior_notes %}
+                                                <div class="mb-3">
+                                                    <h6><i class="fas fa-smile me-2"></i>Xulq-atvor</h6>
+                                                    <p>{{ note.behavior_notes }}</p>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if note.general_notes %}
+                                                <div class="mb-3">
+                                                    <h6><i class="fas fa-comment me-2"></i>Umumiy eslatmalar</h6>
+                                                    <p>{{ note.general_notes }}</p>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            <div class="text-muted small text-end">
+                                                <i class="fas fa-clock me-1"></i>{{ note.created_at.strftime('%H:%M') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>Kunlik yozuvlar mavjud emas.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Attendance filter
+        const filterButtons = document.querySelectorAll('[data-filter]');
+        const attendanceRows = document.querySelectorAll('.attendance-row');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Set active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                const filterValue = this.getAttribute('data-filter');
+
+                attendanceRows.forEach(row => {
+                    if (filterValue === 'all' || row.getAttribute('data-status') === filterValue) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        // Handle URL hash for tabs
+        const hashId = window.location.hash.substring(1);
+        if (hashId === 'notes') {
+            const notesTab = document.getElementById('notes-tab');
+            if (notesTab) {
+                notesTab.click();
+            }
+        }
+    });
+</script>
+{% endblock %}

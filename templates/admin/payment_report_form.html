@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">To‘lovlar bo‘yicha hisobot yaratish</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Payment Report Form -->
+    <form method="POST" action="{{ url_for('admin.payment_reports') }}" class="needs-validation" novalidate>
+        <div class="row">
+            <!-- Report Type -->
+            <div class="col-md-6 mb-3">
+                <label for="report_type" class="form-label">Hisobot turi</label>
+                <select class="form-select" id="report_type" name="report_type" required>
+                    <option value="" disabled selected>Hisobot turini tanlang</option>
+                    <option value="monthly">Oylik</option>
+                    <option value="yearly">Yillik</option>
+                    <option value="all">Hammasi</option>
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, hisobot turini tanlang.
+                </div>
+            </div>
+            
+            <!-- Month -->
+            <div class="col-md-6 mb-3">
+                <label for="month" class="form-label">Oy</label>
+                <select class="form-select" id="month" name="month">
+                    <option value="" disabled selected>Oyni tanlang</option>
+                    {% for i in range(1, 13) %}
+                        <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, oyni tanlang.
+                </div>
+            </div>
+            
+            <!-- Year -->
+            <div class="col-md-6 mb-3">
+                <label for="year" class="form-label">Yil</label>
+                <select class="form-select" id="year" name="year" required>
+                    <option value="" disabled selected>Yilni tanlang</option>
+                    {% for year in years %}
+                        <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback">
+                    Iltimos, yilni tanlang.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Submit and Back Buttons -->
+        <button type="submit" class="btn btn-primary">Hisobot yaratish</button>
+        <a href="{{ url_for('admin.reports') }}" class="btn btn-secondary">Orqaga qaytish</a>
+    </form>
+</div>
+
+<!-- Bootstrap form validation script -->
+<script>
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})();
+</script>
+{% endblock %}

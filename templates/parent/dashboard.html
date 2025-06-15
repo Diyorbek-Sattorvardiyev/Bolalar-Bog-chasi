@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Ota-ona Boshqaruv Paneli | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="fas fa-user-alt me-2"></i>Ota-ona Sahifasi
+            </h1>
+            <p class="text-muted">Xush kelibsiz, {{ parent.user.first_name }}!</p>
+        </div>
+        <div class="col-auto">
+            <div class="d-flex align-items-center h-100">
+                <div class="current-date-time">
+                    <div class="date">{{ now.strftime('%d.%m.%Y') }}</div>
+                    <div id="current-time" class="time">{{ now.strftime('%H:%M:%S') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert for unread messages -->
+    {% if unread_messages > 0 %}
+    <div class="alert alert-info alert-dismissible fade show">
+        <i class="fas fa-envelope me-2"></i>Sizda {{ unread_messages }} ta o'qilmagan xabar bor!
+        <a href="{{ url_for('parent.messages') }}" class="alert-link">Xabarlarni ko'rish</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Children Cards -->
+    <div class="row mb-4">
+        {% for child in children %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-child me-2"></i>{{ child.first_name }} {{ child.last_name }}
+                    </h5>
+                    <a href="{{ url_for('parent.child_info', child_id=child.id) }}" class="btn btn-sm btn-light">Batafsil</a>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Guruh:</strong> {{ child.group.name if child.group else 'Tayinlanmagan' }}</p>
+                            <p><strong>Yosh:</strong> {{ ((now.date() - child.date_of_birth).days // 365) }} yosh</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Bugungi davomat:</strong>
+                                {% if attendance and attendance[child.id] %}
+                                    {% if attendance[child.id].status == 'present' %}
+                                        <span class="text-success">Keldi</span>
+                                    {% elif attendance[child.id].status == 'absent' %}
+                                        <span class="text-danger">Kelmadi</span>
+                                    {% elif attendance[child.id].status == 'late' %}
+                                        <span class="text-warning">Kech keldi</span>
+                                    {% elif attendance[child.id].status == 'excused' %}
+                                        <span class="text-info">Sababli</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Qayd qilinmagan</span>
+                                {% endif %}
+                            </p>
+                            <p>
+                                <strong>So'nggi kundalik yozuv:</strong>
+                                {% if latest_notes and latest_notes[child.id] %}
+                                    <a href="{{ url_for('parent.child_info', child_id=child.id) }}#notes">{{ latest_notes[child.id].date.strftime('%d.%m.%Y') }}</a>
+                                {% else %}
+                                    <span class="text-muted">Mavjud emas</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex">
+                        <a href="{{ url_for('parent.schedule', child_id=child.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-calendar-alt me-2"></i>Jadval
+                        </a>
+                        <a href="{{ url_for('parent.gallery') }}?child_id={{ child.id }}" class="btn btn-outline-info">
+                            <i class="fas fa-images me-2"></i>Galereya
+                        </a>
+                        <a href="{{ url_for('parent.payments') }}#child-{{ child.id }}" class="btn btn-outline-success">
+                            <i class="fas fa-money-bill-wave me-2"></i>To'lovlar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Sizning farzandlaringiz hali ro'yxatdan o'tkazilmagan. Iltimos, bog'cha ma'muriyatiga murojaat qiling.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recent Media -->
+    {% if recent_media %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-images me-2"></i>So'nggi media</h5>
+                    <a href="{{ url_for('parent.gallery') }}" class="btn btn-sm btn-primary">Barcha media</a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for media in recent_media %}
+                        <div class="col-md-4 col-sm-6 mb-4">
+                            <div class="gallery-item">
+                                {% if media.type == 'photo' %}
+                                <img src="{{ url_for('static', filename='uploads/' + media.filename) }}" alt="{{ media.description }}" class="img-fluid">
+                                {% else %}
+                                <video src="{{ url_for('static', filename='uploads/' + media.filename) }}" class="img-fluid" controls></video>
+                                {% endif %}
+                                <div class="gallery-overlay">
+                                    <p>{{ media.description or 'Tavsif mavjud emas' }}</p>
+                                    <small>{{ media.upload_date.strftime('%d.%m.%Y') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Tezkor harakatlar</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('parent.schedule') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-calendar-alt mb-2 d-block" style="font-size: 24px;"></i>
+                                Jadval
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('parent.gallery') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-images mb-2 d-block" style="font-size: 24px;"></i>
+                                Galereya
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('parent.messages') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-comments mb-2 d-block" style="font-size: 24px;"></i>
+                                Xabarlar
+                                {% if unread_messages > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ unread_messages }}
+                                </span>
+                                {% endif %}
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="{{ url_for('parent.payments') }}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="fas fa-money-bill-wave mb-2 d-block" style="font-size: 24px;"></i>
+                                To'lovlar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Media | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="page-title">
+                <i class="fas fa-camera me-2"></i>Media
+            </h1>
+            <p class="text-muted">Rasm va videolarni yuklash va ko'rish</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Yangi media yuklash</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" action="{{ url_for('teacher.media') }}">
+                        <div class="mb-3">
+                            <label for="child_id" class="form-label">Bola</label>
+                            <select name="child_id" id="child_id" class="form-select" required>
+                                <option value="">Tanlang...</option>
+                                {% for child in children %}
+                                    <option value="{{ child.id }}" {% if request.args.get('child_id') == child.id|string %}selected{% endif %}>
+                                        {{ child.first_name }} {{ child.last_name }} ({{ child.group.name if child.group else 'Guruhi yo\'q' }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="media_type" class="form-label">Media turi</label>
+                            <select name="media_type" id="media_type" class="form-select" required>
+                                <option value="photo">Rasm</option>
+                                <option value="video">Video</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="media_file" class="form-label">Fayl tanlang</label>
+                            <input type="file" name="media_file" id="media_file" class="form-control" required>
+                            <small class="text-muted">
+                                Rasmlar uchun: JPG, PNG, GIF<br>
+                                Videolar uchun: MP4, MOV, AVI<br>
+                                Maksimal hajm: 16MB
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Tavsif</label>
+                            <textarea name="description" id="description" rows="3" class="form-control" placeholder="Media haqida qisqacha tavsif yozing..."></textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>Yuklash
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-images me-2"></i>Yuklangan media</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-primary active" data-filter="all">Barchasi</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-filter="photo">Rasmlar</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-filter="video">Videolar</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="media-gallery">
+                        {% if media_items %}
+                            {% for media in media_items %}
+                                <div class="col-md-6 col-lg-4 mb-4 media-item" data-type="{{ media.type }}">
+                                    <div class="gallery-item">
+                                        {% if media.type == 'photo' %}
+                                            <img src="{{ url_for('static', filename='uploads/' + media.filename) }}" alt="{{ media.description }}" class="img-fluid">
+                                        {% else %}
+                                            <video src="{{ url_for('static', filename='uploads/' + media.filename) }}" class="img-fluid" controls></video>
+                                        {% endif %}
+                                        <div class="gallery-overlay">
+                                            <p>{{ media.description or 'Tavsif mavjud emas' }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small>{{ media.upload_date.strftime('%d.%m.%Y') }}</small>
+                                                <small>{{ media.child.first_name }} {{ media.child.last_name }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>Hali media fayllar yuklanmagan.
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Media type filter
+        const filterButtons = document.querySelectorAll('[data-filter]');
+        const mediaItems = document.querySelectorAll('.media-item');
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Set active button
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                const filterValue = this.getAttribute('data-filter');
+
+                mediaItems.forEach(item => {
+                    if (filterValue === 'all' || item.getAttribute('data-type') === filterValue) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // File type validation based on selected media type
+        const mediaTypeSelect = document.getElementById('media_type');
+        const fileInput = document.getElementById('media_file');
+
+        if (mediaTypeSelect && fileInput) {
+            mediaTypeSelect.addEventListener('change', function() {
+                fileInput.value = ''; // Clear current selection
+                updateFileTypes();
+            });
+
+            function updateFileTypes() {
+                const mediaType = mediaTypeSelect.value;
+                if (mediaType === 'photo') {
+                    fileInput.accept = '.jpg,.jpeg,.png,.gif';
+                } else {
+                    fileInput.accept = '.mp4,.mov,.avi';
+                }
+            }
+
+            // Set initial file types
+            updateFileTypes();
+        }
+    });
+</script>
+{% endblock %}

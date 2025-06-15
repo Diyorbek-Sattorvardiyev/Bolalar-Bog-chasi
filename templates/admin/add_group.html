@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Guruh qo‘shish</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Add Group Form -->
+    <form method="POST" action="{{ url_for('admin.add_group') }}" class="needs-validation" novalidate>
+        <div class="row">
+            <!-- Group Name -->
+            <div class="col-md-6 mb-3">
+                <label for="name" class="form-label">Guruh nomi</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+                <div class="invalid-feedback">
+                    Iltimos, guruh nomini kiriting.
+                </div>
+            </div>
+            
+            <!-- Teacher -->
+            <div class="col-md-6 mb-3">
+                <label for="teacher_id" class="form-label">O‘qituvchi</label>
+                <select class="form-select" id="teacher_id" name="teacher_id">
+                    <option value="">O‘qituvchi tanlanmagan</option>
+                    {% for teacher in teachers %}
+                        <option value="{{ teacher.id }}">{{ teacher.user.first_name }} {{ teacher.user.last_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Capacity -->
+            <div class="col-md-6 mb-3">
+                <label for="capacity" class="form-label">Sig‘im</label>
+                <input type="number" class="form-control" id="capacity" name="capacity" required>
+                <div class="invalid-feedback">
+                    Iltimos, guruh sig‘imini kiriting.
+                </div>
+            </div>
+            
+            <!-- Age Group -->
+            <div class="col-md-6 mb-3">
+                <label for="age_group" class="form-label">Yosh guruhi</label>
+                <input type="text" class="form-control" id="age_group" name="age_group" required>
+                <div class="invalid-feedback">
+                    Iltimos, yosh guruhini kiriting.
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <div class="col-md-12 mb-3">
+                <label for="description" class="form-label">Tavsif</label>
+                <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+            </div>
+        </div>
+        
+        <!-- Submit and Back Buttons -->
+        <button type="submit" class="btn btn-primary">Guruh qo‘shish</button>
+        <a href="{{ url_for('admin.groups') }}" class="btn btn-secondary">Orqaga qaytish</a>
+    </form>
+</div>
+
+<!-- Bootstrap form validation script -->
+<script>
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})();
+</script>
+{% endblock %}

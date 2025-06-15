@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Ota-ona ma'lumotlarini tahrirlash</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Edit Parent Form -->
+    <form method="POST" action="{{ url_for('admin.edit_parent', parent_id=parent.id) }}" class="needs-validation" novalidate>
+        <div class="row">
+            <!-- First Name -->
+            <div class="col-md-6 mb-3">
+                <label for="first_name" class="form-label">Ism</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                <div class="invalid-feedback">
+                    Iltimos, ismini kiriting.
+                </div>
+            </div>
+            
+            <!-- Last Name -->
+            <div class="col-md-6 mb-3">
+                <label for="last_name" class="form-label">Familiya</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                <div class="invalid-feedback">
+                    Iltimos, familiyasini kiriting.
+                </div>
+            </div>
+            
+            <!-- Email -->
+            <div class="col-md-6 mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                <div class="invalid-feedback">
+                    Iltimos, to‘g‘ri email manzilini kiriting.
+                </div>
+            </div>
+            
+            <!-- Phone -->
+            <div class="col-md-6 mb-3">
+                <label for="phone" class="form-label">Telefon</label>
+                <input type="text" class="form-control" id="phone" name="phone" value="{{ user.phone or '' }}">
+            </div>
+            
+            <!-- Address -->
+            <div class="col-md-12 mb-3">
+                <label for="address" class="form-label">Manzil</label>
+                <textarea class="form-control" id="address" name="address" rows="3">{{ parent.address or '' }}</textarea>
+            </div>
+            
+            <!-- New Password -->
+            <div class="col-md-6 mb-3">
+                <label for="new_password" class="form-label">Yangi parol (ixtiyoriy)</label>
+                <input type="password" class="form-control" id="new_password" name="new_password">
+                <small class="form-text text-muted">Agar parolni o‘zgartirmoqchi bo‘lmasangiz, ushbu maydonni bo‘sh qoldiring.</small>
+            </div>
+        </div>
+        
+        <!-- Submit and Back Buttons -->
+        <button type="submit" class="btn btn-primary">Saqlash</button>
+        <a href="{{ url_for('admin.parents') }}" class="btn btn-secondary">Orqaga qaytish</a>
+    </form>
+</div>
+
+<!-- Bootstrap form validation script -->
+<script>
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})();
+</script>
+{% endblock %}
